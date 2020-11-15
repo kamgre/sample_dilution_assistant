@@ -1,12 +1,18 @@
-sample_dilution_helper <- function(a, b, minc = NA, maxc = NA, minresp = NA, maxresp = NA,
+sample_dilution_helper <- function(a, 
+                                   b, 
+                                   minc = NA, 
+                                   maxc = NA, 
+                                   minresp = NA, 
+                                   maxresp = NA,
                                    sample_unit = 'mg',
                                    dil_unit = 'mL',
                                    dil_size = 5,
-                                   sample_aliquots = c(500, 300, 250, 200, 150, 100, 75, 50, 25, 15, 10, 5),
-                                   dilutions_count = NA,
-                                   response = '',
+                                   sample_aliquots = NA,
+                                   response = ' ',
                                    curve_title = '',
-                                   curve_subtitle = ''){
+                                   curve_subtitle = '',
+                                   maxc_limit = 200,
+                                   dilution_count = NA){
   
   dil <- 1 # dilution factor
   
@@ -23,7 +29,7 @@ sample_dilution_helper <- function(a, b, minc = NA, maxc = NA, minresp = NA, max
   }
   
   plot_ylim <- c(0.01, signif(calibration_curve_inv(maxc)*1.1, 2)) ## MAXRESP!?
-  plot_xlim <- c(0.01, 250)
+  plot_xlim <- c(0.01, maxc_limit)
   
   toppoint <- maxresp + (maxresp - minresp) * 0.05
   #toppoint <-  maxc + (maxc - minc) * 0.05
@@ -60,6 +66,35 @@ sample_dilution_helper <- function(a, b, minc = NA, maxc = NA, minresp = NA, max
     unitfactor <- 1
   }
   
+  
+  if (!is.na(dilution_count)){
+    xrange <- plot_xlim[2] - maxc
+    yrange <- plot_ylim[2] - calibration_curve_inv(minc)
+
+    horizontal_steps <- ceiling(dilution_count/2)
+    vertical_steps <- dilution_count - horizontal_steps
+    
+    calculated_dilutions <- vector(mode = 'numeric', length = 0L)
+    sample_aliquots <- vector(mode = 'numeric', length = 0L)
+    
+    for (i in 1:horizontal_steps) {
+      dilution <- (calibration_curve_inv(maxc) / calibration_curve_inv(maxc + i / (horizontal_steps + 1) * xrange))
+      calculated_dilutions <- c(calculated_dilutions, dilution)
+    }
+    
+    for (i in 1:vertical_steps){
+      dilution <- ((plot_ylim[2] - i / (vertical_steps + 1) * yrange) / calibration_curve_inv(plot_xlim[2]))
+      calculated_dilutions <- c(calculated_dilutions, dilution)
+    }
+    
+    for (i in 1:length(calculated_dilutions)){
+      
+      calculated_aliquot <- calculated_dilutions[i] * dil_size * unitfactor
+      calculated_aliquot <- signif(calculated_aliquot, 2)
+      sample_aliquots <- c(sample_aliquots, calculated_aliquot)
+    }
+    
+  }
   
   
   for (i in 1:length(sample_aliquots)) {
