@@ -7,7 +7,10 @@ maxc <- 4.0068
 # absolutely basic example (everything in mg/mL, a volume is drawn and by volume is diluted)
 sample_dilution_assistant(a, b, minc, maxc)
 
-# same, but with analyte measured in micrograms
+# same, but with narrowed raw sample concentration range
+sample_dilution_assistant(a, b, minc, maxc, maxc_limit = 10)
+
+# same as the first one, but with analyte measured in micrograms
 # + detector response unit is added
 sample_dilution_assistant(a, b, minc, maxc, analyte_unit = 'µg', response = 'mAu')
 
